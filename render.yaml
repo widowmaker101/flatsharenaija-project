@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: flatsharenaija-frontend
+    env: static
+    buildCommand: npm run build
+    staticPublishPath: build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://flatsharenaija-project.onrender.com

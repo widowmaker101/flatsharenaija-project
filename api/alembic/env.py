@@ -30,3 +30,6 @@ def run_migrations_online():
             context.run_migrations()
 
 run_migrations_online()
+
+from models import Base  # import your SQLAlchemy Base
+target_metadata = Base.metadata

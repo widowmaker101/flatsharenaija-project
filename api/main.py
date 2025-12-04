@@ -55,7 +55,7 @@ def login(email: str = Form(...), password: str = Form(...), db: Session = Depen
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-Bfrom auth import SECRET_KEY, ALGORITHM
+from auth import SECRET_KEY, ALGORITHM
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 

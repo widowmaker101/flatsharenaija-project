@@ -82,3 +82,16 @@ def login(email: str = Form(...), password: str = Form(...), db: Session = Depen
         "refresh_token": refresh_token,
         "token_type": "bearer"
     }
+
+@app.post("/refresh")
+def refresh_token(refresh_token: str = Form(...)):
+    try:
+        payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
+    except JWTError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
+
+    new_access_token = create_access_token(data={"sub": email})
+    return {"access_token": new_access_token, "token_type": "bearer"}

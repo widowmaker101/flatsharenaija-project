@@ -142,3 +142,18 @@ def create_listing(
     db.commit()
     db.refresh(listing)
     return listing
+@app.get("/listings")
+def get_listings(
+    location: str | None = None,
+    min_price: float | None = None,
+    max_price: float | None = None,
+    db: Session = Depends(get_db)
+):
+    query = db.query(Listing)
+    if location:
+        query = query.filter(Listing.location.ilike(f"%{location}%"))
+    if min_price is not None:
+        query = query.filter(Listing.price >= min_price)
+    if max_price is not None:
+        query = query.filter(Listing.price <= max_price)
+    return query.all()

@@ -5,3 +5,5 @@ pydantic
 passlib[bcrypt]
 python-jose[cryptography]
 python-multipart
+sqlalchemy
+psycopg2-binary

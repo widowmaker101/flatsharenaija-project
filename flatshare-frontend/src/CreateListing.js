@@ -50,3 +50,4 @@ export default function CreateListing() {
     </div>
   );
 }
+<input type="file" onChange={e => formData.append("image", e.target.files[0])} />

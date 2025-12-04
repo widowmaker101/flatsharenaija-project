@@ -95,3 +95,17 @@ def refresh_token(refresh_token: str = Form(...)):
 
     new_access_token = create_access_token(data={"sub": email})
     return {"access_token": new_access_token, "token_type": "bearer"}
+from fastapi.middleware.cors import CORSMiddleware
+
+origins = [
+    "https://flatsharenaija-frontend.onrender.com",
+    "http://localhost:3000"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)

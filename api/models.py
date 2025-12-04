@@ -28,3 +28,14 @@ User.listings = relationship("Listing", back_populates="owner")
 from sqlalchemy import Column
 
 Listing.image_url = Column(String, nullable=True)
+from sqlalchemy import Table, Column, Integer, ForeignKey
+from sqlalchemy.orm import relationship
+
+favorites_table = Table(
+    "favorites",
+    Base.metadata,
+    Column("user_id", Integer, ForeignKey("users.id"), primary_key=True),
+    Column("listing_id", Integer, ForeignKey("listings.id"), primary_key=True),
+)
+
+User.favorites = relationship("Listing", secondary=favorites_table, backref="favorited_by")

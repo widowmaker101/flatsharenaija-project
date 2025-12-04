@@ -157,3 +157,15 @@ def get_listings(
     if max_price is not None:
         query = query.filter(Listing.price <= max_price)
     return query.all()
+@app.post("/favorites/{listing_id}")
+def add_favorite(listing_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    listing = db.query(Listing).filter(Listing.id == listing_id).first()
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    current_user.favorites.append(listing)
+    db.commit()
+    return {"message": "Listing added to favorites"}
+
+@app.get("/favorites")
+def get_favorites(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return current_user.favorites

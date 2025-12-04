@@ -169,3 +169,30 @@ def add_favorite(listing_id: int, db: Session = Depends(get_db), current_user: U
 @app.get("/favorites")
 def get_favorites(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return current_user.favorites
+@app.get("/profile")
+def get_profile(current_user: User = Depends(get_current_user)):
+    return {
+        "username": current_user.username,
+        "email": current_user.email,
+        "bio": current_user.bio,
+        "phone": current_user.phone,
+        "preferences": current_user.preferences,
+    }
+
+@app.put("/profile")
+def update_profile(
+    bio: str | None = None,
+    phone: str | None = None,
+    preferences: str | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if bio is not None:
+        current_user.bio = bio
+    if phone is not None:
+        current_user.phone = phone
+    if preferences is not None:
+        current_user.preferences = preferences
+    db.commit()
+    db.refresh(current_user)
+    return {"message": "Profile updated successfully"}

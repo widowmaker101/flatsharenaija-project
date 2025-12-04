@@ -39,3 +39,9 @@ favorites_table = Table(
 )
 
 User.favorites = relationship("Listing", secondary=favorites_table, backref="favorited_by")
+from sqlalchemy import Column, String
+
+# Extend User model with profile fields
+User.bio = Column(String, nullable=True)
+User.phone = Column(String, nullable=True)
+User.preferences = Column(String, nullable=True)

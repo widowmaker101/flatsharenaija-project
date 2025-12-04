@@ -3,50 +3,33 @@ import { apiRequest } from "./api";
 
 export default function Listings() {
   const [listings, setListings] = useState([]);
-  const [location, setLocation] = useState("");
-  const [minPrice, setMinPrice] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
+  const [favorites, setFavorites] = useState([]);
 
   const fetchListings = async () => {
-    let query = "/listings";
-    const params = [];
-    if (location) params.push(`location=${location}`);
-    if (minPrice) params.push(`min_price=${minPrice}`);
-    if (maxPrice) params.push(`max_price=${maxPrice}`);
-    if (params.length > 0) query += "?" + params.join("&");
-
-    const res = await apiRequest(query);
+    const res = await apiRequest("/listings");
     const data = await res.json();
     setListings(data);
   };
 
+  const fetchFavorites = async () => {
+    const res = await apiRequest("/favorites");
+    const data = await res.json();
+    setFavorites(data.map(f => f.id));
+  };
+
+  const addFavorite = async (id) => {
+    await apiRequest(`/favorites/${id}`, { method: "POST" });
+    fetchFavorites();
+  };
+
   useEffect(() => {
     fetchListings();
+    fetchFavorites();
   }, []);
 
   return (
     <div>
       <h2>Available Listings</h2>
-      <div style={{ marginBottom: "20px" }}>
-        <input
-          value={location}
-          onChange={e => setLocation(e.target.value)}
-          placeholder="Filter by location"
-        />
-        <input
-          type="number"
-          value={minPrice}
-          onChange={e => setMinPrice(e.target.value)}
-          placeholder="Min price"
-        />
-        <input
-          type="number"
-          value={maxPrice}
-          onChange={e => setMaxPrice(e.target.value)}
-          placeholder="Max price"
-        />
-        <button onClick={fetchListings}>Search</button>
-      </div>
       <ul style={{ listStyle: "none", padding: 0 }}>
         {listings.map(listing => (
           <li key={listing.id} style={{ marginBottom: "20px" }}>
@@ -59,6 +42,9 @@ export default function Listings() {
                 style={{ maxWidth: "300px", borderRadius: "8px" }}
               />
             )}
+            <button onClick={() => addFavorite(listing.id)}>
+              {favorites.includes(listing.id) ? "★ Favorited" : "☆ Save"}
+            </button>
           </li>
         ))}
       </ul>

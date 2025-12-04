@@ -18,3 +18,5 @@ python-jose[cryptography]
 python-multipart
 passlib[bcrypt]
 python-jose[cryptography]
+passlib[bcrypt]
+python-jose[cryptography]

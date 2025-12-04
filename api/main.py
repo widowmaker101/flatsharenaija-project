@@ -109,3 +109,36 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+from fastapi import UploadFile
+
+@app.post("/listings")
+def create_listing(
+    title: str = Form(...),
+    description: str = Form(...),
+    location: str = Form(...),
+    price: float = Form(...),
+    availability: str = Form(...),
+    image: UploadFile | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    image_url = None
+    if image:
+        # Save file locally or to cloud storage
+        with open(f"static/{image.filename}", "wb") as f:
+            f.write(image.file.read())
+        image_url = f"/static/{image.filename}"
+
+    listing = Listing(
+        title=title,
+        description=description,
+        location=location,
+        price=price,
+        availability=availability,
+        owner_id=current_user.id,
+        image_url=image_url
+    )
+    db.add(listing)
+    db.commit()
+    db.refresh(listing)
+    return listing

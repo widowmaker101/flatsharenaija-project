@@ -25,3 +25,6 @@ class Listing(Base):
     owner = relationship("User", back_populates="listings")
 
 User.listings = relationship("Listing", back_populates="owner")
+from sqlalchemy import Column
+
+Listing.image_url = Column(String, nullable=True)

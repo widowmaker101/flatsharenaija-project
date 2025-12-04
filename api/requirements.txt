@@ -20,3 +20,4 @@ passlib[bcrypt]
 python-jose[cryptography]
 passlib[bcrypt]
 python-jose[cryptography]
+alembic

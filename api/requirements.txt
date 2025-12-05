@@ -21,3 +21,4 @@ python-jose[cryptography]
 passlib[bcrypt]
 python-jose[cryptography]
 alembic
+bcrypt==4.0.1

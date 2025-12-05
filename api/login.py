@@ -13,3 +13,4 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         raise HTTPException(status_code=401, detail="Invalid credentials")
     return {"access_token": "dummy-token", "token_type": "bearer"}
 # force redeploy with Passlib bcrypt
+# force redeploy with Passlib bcrypt

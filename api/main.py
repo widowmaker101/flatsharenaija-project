@@ -11,3 +11,4 @@ def login(email: str = Form(...), password: str = Form(...), db: Session = Depen
     if not user or not verify_password(password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     return {"access_token": "dummy-token", "token_type": "bearer"}
+# force redeploy with Passlib bcrypt

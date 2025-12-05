@@ -14,3 +14,4 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     return {"access_token": "dummy-token", "token_type": "bearer"}
 # force redeploy with Passlib bcrypt
 # force redeploy with Passlib bcrypt
+# force redeploy with Passlib bcrypt

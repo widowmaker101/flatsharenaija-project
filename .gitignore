@@ -1,12 +1,14 @@
+# Node
 node_modules/
+build/
 .vercel/
+
+# Python
 __pycache__/
+*.pyc
+
+# Logs
 *.log
-__pycache__/
-__pycache__/
-__pycache__/
-__pycache__/
-__pycache__/
-__pycache__/
-__pycache__/
-__pycache__/
+
+# Environment
+.env

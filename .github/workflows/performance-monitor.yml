@@ -1,0 +1,56 @@
+name: Performance Monitoring
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  frontend-lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli
+
+      - name: Build frontend
+        run: |
+          cd flatshare-frontend/flatsharenaija-project/investor-dashboard/frontend
+          npm install
+          npm run build
+          npx serve -s build &
+
+      - name: Run Lighthouse CI
+        run: |
+          lhci autorun --collect.url=http://localhost:3000 --upload.target=temporary-public-storage
+
+  backend-pytest-benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          cd flatshare-frontend/flatsharenaija-project/investor-dashboard/api
+          pip install -r requirements.txt
+          pip install pytest pytest-benchmark
+
+      - name: Run pytest benchmarks
+        run: |
+          cd flatshare-frontend/flatsharenaija-project/investor-dashboard/api
+          pytest --benchmark-only --benchmark-json=benchmark.json

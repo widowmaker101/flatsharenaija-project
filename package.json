@@ -2,6 +2,9 @@
   "name": "flatsharenaija-project",
   "version": "1.0.0",
   "private": true,
+  "name": "root",
+  "private": true,
+  "version": "1.0.0",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",

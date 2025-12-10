@@ -12,7 +12,3 @@ __pycache__/
 
 # Environment
 .env
-__pycache__/
-*.pyc
-node_modules/
-build/

@@ -1,3 +1,16 @@
+import { Toaster } from "react-hot-toast";
+
+function App() {
+  return (
+    <div>
+      <Toaster position="top-right" />
+      {/* your routes/components */}
+    </div>
+  );
+}
+
+export default App;
+
 import { useEffect, useState } from "react";
 
 function App() {

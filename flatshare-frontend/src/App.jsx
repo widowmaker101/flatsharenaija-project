@@ -1,36 +1,66 @@
-import { Toaster } from "react-hot-toast";
+import { useState, useEffect } from 'react'
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
+import { AnimatePresence } from 'framer-motion'
+import Navbar from './components/Navbar'
+import Home from './pages/Home'
+import About from './pages/About'
+import Dashboard from './pages/Dashboard'
+import LoadingBar from './components/LoadingBar'
+import Onboarding from './components/Onboarding'
 
-function App() {
+function AnimatedRoutes({ searchQuery, setSearchQuery, profile }) {
+  const location = useLocation()
   return (
-    <div>
-      <Toaster position="top-right" />
-      {/* your routes/components */}
-    </div>
-  );
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<Home searchQuery={searchQuery} setSearchQuery={setSearchQuery} profile={profile} />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/dashboard" element={<Dashboard profile={profile} />} />
+      </Routes>
+    </AnimatePresence>
+  )
 }
 
-export default App;
-
-import { useEffect, useState } from "react";
-
-function App() {
-  const [message, setMessage] = useState("");
+export default function App() {
+  const [searchQuery, setSearchQuery] = useState("")
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const [profile, setProfile] = useState(null)
 
   useEffect(() => {
-    const apiUrl = import.meta.env.VITE_API_URL;
-
-    fetch(`${apiUrl}/`)
-      .then((res) => res.json())
-      .then((data) => setMessage(data.message))
-      .catch((err) => setMessage("Error: " + err.message));
-  }, []);
+    const completed = localStorage.getItem("onboardingComplete")
+    if (!completed) {
+      setShowOnboarding(true)
+    } else {
+      const savedProfile = localStorage.getItem("userProfile")
+      if (savedProfile) {
+        setProfile(JSON.parse(savedProfile))
+      }
+    }
+  }, [])
 
   return (
-    <div>
-      <h1>FlatshareNaija Frontend</h1>
-      <p>Backend says: {message}</p>
-    </div>
-  );
+    <Router>
+      {showOnboarding ? (
+        <Onboarding onFinish={() => {
+          setShowOnboarding(false)
+          const savedProfile = localStorage.getItem("userProfile")
+          if (savedProfile) {
+            setProfile(JSON.parse(savedProfile))
+          }
+        }} />
+      ) : (
+        <>
+          <Navbar />
+          <AnimatedRoutes searchQuery={searchQuery} setSearchQuery={setSearchQuery} profile={profile} />
+        </>
+      )}
+    </Router>
+  )
 }
 
-export default App;
+// Ask for notification permission when app loads
+useEffect(() => {
+  if ("Notification" in window && Notification.permission !== "granted") {
+    Notification.requestPermission()
+  }
+}, [])

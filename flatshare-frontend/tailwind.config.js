@@ -1,17 +1,8 @@
+/** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: 'class',
+  content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
-    extend: {
-      colors: {
-        accent: {
-          indigo: '#4f46e5',
-          green: '#10b981',
-          purple: '#8b5cf6',
-          orange: '#f97316',
-          pink: '#ec4899'
-        }
-      }
-    }
+    extend: {},
   },
-  plugins: []
+  plugins: [],
 }

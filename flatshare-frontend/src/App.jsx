@@ -1,66 +1,43 @@
-import { useState, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
-import { AnimatePresence } from 'framer-motion'
-import Navbar from './components/Navbar'
-import Home from './pages/Home'
-import About from './pages/About'
-import Dashboard from './pages/Dashboard'
-import LoadingBar from './components/LoadingBar'
-import Onboarding from './components/Onboarding'
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Home from "./components/Home.jsx";
+import FlatSearch from "./components/FlatSearch.jsx";
+import FlatDetails from "./components/FlatDetails.jsx";
+import FlatForm from "./components/FlatForm.jsx";
+import Dashboard from "./components/Dashboard.jsx";
+import Profile from "./components/Profile.jsx";
+import Settings from "./components/Settings.jsx";
+import Navbar from "./components/Navbar.jsx";
 
-function AnimatedRoutes({ searchQuery, setSearchQuery, profile }) {
-  const location = useLocation()
+function Shell({ children }) {
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<Home searchQuery={searchQuery} setSearchQuery={setSearchQuery} profile={profile} />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/dashboard" element={<Dashboard profile={profile} />} />
-      </Routes>
-    </AnimatePresence>
-  )
+    <div className="min-h-screen bg-gray-50 dark:bg-neutral-900">
+<main className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+  {children}
+</main>      <footer className="mx-auto max-w-6xl px-4 py-10 text-sm text-neutral-600">
+        <div className="rounded-2xl border border-white/20 bg-white/10 dark:bg-neutral-800 p-4">
+          Built for Naija. Find your next flat fast.
+        </div>
+      </footer>
+    </div>
+  );
 }
 
 export default function App() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [showOnboarding, setShowOnboarding] = useState(false)
-  const [profile, setProfile] = useState(null)
-
-  useEffect(() => {
-    const completed = localStorage.getItem("onboardingComplete")
-    if (!completed) {
-      setShowOnboarding(true)
-    } else {
-      const savedProfile = localStorage.getItem("userProfile")
-      if (savedProfile) {
-        setProfile(JSON.parse(savedProfile))
-      }
-    }
-  }, [])
-
   return (
     <Router>
-      {showOnboarding ? (
-        <Onboarding onFinish={() => {
-          setShowOnboarding(false)
-          const savedProfile = localStorage.getItem("userProfile")
-          if (savedProfile) {
-            setProfile(JSON.parse(savedProfile))
-          }
-        }} />
-      ) : (
-        <>
-          <Navbar />
-          <AnimatedRoutes searchQuery={searchQuery} setSearchQuery={setSearchQuery} profile={profile} />
-        </>
-      )}
+      <Navbar />
+      <Shell>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/flats" element={<FlatSearch />} />
+          <Route path="/flats/:id" element={<FlatDetails />} />
+          <Route path="/flats/new" element={<FlatForm />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+      </Shell>
     </Router>
-  )
+  );
 }
-
-// Ask for notification permission when app loads
-useEffect(() => {
-  if ("Notification" in window && Notification.permission !== "granted") {
-    Notification.requestPermission()
-  }
-}, [])

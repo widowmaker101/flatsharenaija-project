@@ -134,3 +134,279 @@ useEffect(() => {
   // Reset unread count when entering a group
   setUnreadCount(prev => ({ ...prev, [groupId]: 0 }))
 }, [groupId])
+useEffect(() => {
+  // Reset unread count when entering a group
+  setUnreadCount(prev => ({ ...prev, [groupId]: 0 }))
+}, [groupId])
+useEffect(() => {
+  socket.on("displayTyping", data => {
+    if (data.groupId == groupId) {
+      setTypingUser(data.user)
+    }
+  })
+
+  socket.on("hideTyping", data => {
+    if (data.groupId == groupId) {
+      setTypingUser(null)
+    }
+  })
+
+  return () => {
+    socket.off("displayTyping")
+    socket.off("hideTyping")
+  }
+}, [groupId])
+useEffect(() => {
+  // Reset unread count when entering a group
+  setUnreadCount(prev => ({ ...prev, [groupId]: 0 }))
+}, [groupId])
+const createInvite = async () => {
+  const token = localStorage.getItem("token")
+  const res = await fetch(`http://localhost:3001/groups/${groupId}/invite`, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${token}` }
+  })
+  const data = await res.json()
+  alert(`Invite link: ${data.link}`)
+}
+
+export default function GroupChat({ groupId }) {
+  return (
+    <div>
+      {/* existing chat UI */}
+      <button
+        onClick={createInvite}
+        className="ml-2 bg-green-600 text-white px-4 py-1 rounded"
+      >
+        Create Invite
+      </button>
+    </div>
+  )
+}
+const createInvite = async () => {
+  const token = localStorage.getItem("token")
+  const res = await fetch(`http://localhost:3001/groups/${groupId}/invite`, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${token}` }
+  })
+  const data = await res.json()
+  alert(`Invite link: ${data.link}`)
+}
+...
+<button onClick={createInvite} className="ml-2 bg-green-600 text-white px-4 py-1 rounded">
+  Create Invite
+</button>
+useEffect(() => {
+  socket.on("inviteCreated", data => {
+    if (data.groupId == groupId) {
+      alert(`${data.inviter} created an invite link!`)
+    }
+  })
+
+  socket.on("inviteAccepted", data => {
+    if (data.groupId == groupId) {
+      alert(`${data.newUser} joined the group via invite!`)
+    }
+  })
+
+  return () => {
+    socket.off("inviteCreated")
+    socket.off("inviteAccepted")
+  }
+}, [groupId])
+const pinnedMessages = messages.filter(m => m.pinned)
+
+return (
+  <div>
+    {pinnedMessages.length > 0 && (
+      <div className="bg-yellow-100 p-2 mb-2 rounded">
+        <h4 className="font-bold">📌 Pinned Messages</h4>
+        {pinnedMessages.map(pm => (
+          <div key={pm.id} className="text-sm">{pm.text}</div>
+        ))}
+      </div>
+    )}
+    {/* normal chat messages below */}
+  </div>
+)
+const [polls, setPolls] = useState([])
+
+useEffect(() => {
+  socket.on("newPoll", data => setPolls(prev => [...prev, data]))
+  socket.on("pollVoted", update => {
+    setPolls(prev => prev.map(p =>
+      p.poll.id === update.poll_id
+        ? { ...p, votes: [...(p.votes || []), update] }
+        : p
+    ))
+  })
+  return () => {
+    socket.off("newPoll")
+    socket.off("pollVoted")
+  }
+}, [])
+
+<div>
+  {polls.map(p => (
+    <div key={p.poll.id} className="border p-2 mb-2 rounded">
+      <h4 className="font-bold">{p.poll.question}</h4>
+      {p.options.map(opt => (
+        <button
+          key={opt.id || opt}
+          onClick={async () => {
+            const token = localStorage.getItem("token")
+            await fetch(`http://localhost:3001/polls/${p.poll.id}/vote`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+              },
+              body: JSON.stringify({ option_id: opt.id })
+            })
+          }}
+          className="block mt-1 text-sm bg-gray-200 px-2 py-1 rounded"
+        >
+          {opt.option_text || opt}
+        </button>
+      ))}
+    </div>
+  ))}
+</div>
+const [scheduleText, setScheduleText] = useState("")
+const [scheduleTime, setScheduleTime] = useState("")
+
+const scheduleMessage = async () => {
+  const token = localStorage.getItem("token")
+  await fetch(`http://localhost:3001/groups/${groupId}/schedule`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
+    body: JSON.stringify({ text: scheduleText, scheduled_at: scheduleTime })
+  })
+  setScheduleText("")
+  setScheduleTime("")
+}
+
+<div className="mt-2">
+  <input
+    type="text"
+    value={scheduleText}
+    onChange={e => setScheduleText(e.target.value)}
+    placeholder="Message to schedule"
+    className="border px-2 py-1 mr-2"
+  />
+  <input
+    type="datetime-local"
+    value={scheduleTime}
+    onChange={e => setScheduleTime(e.target.value)}
+    className="border px-2 py-1 mr-2"
+  />
+  <button onClick={scheduleMessage} className="bg-purple-600 text-white px-2 py-1 rounded">
+    Schedule
+  </button>
+</div>
+const [drafts, setDrafts] = useState([])
+const [draftText, setDraftText] = useState("")
+
+const saveDraft = async () => {
+  const token = localStorage.getItem("token")
+  const res = await fetch(`http://localhost:3001/groups/${groupId}/drafts`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
+    body: JSON.stringify({ text: draftText })
+  })
+  const data = await res.json()
+  setDrafts(prev => [...prev, data])
+  setDraftText("")
+}
+
+useEffect(() => {
+  const token = localStorage.getItem("token")
+  fetch(`http://localhost:3001/groups/${groupId}/drafts`, {
+    headers: { "Authorization": `Bearer ${token}` }
+  })
+    .then(res => res.json())
+    .then(data => setDrafts(data))
+}, [groupId])
+
+<div className="mt-2">
+  <input
+    type="text"
+    value={draftText}
+    onChange={e => setDraftText(e.target.value)}
+    placeholder="Save a draft..."
+    className="border px-2 py-1 mr-2"
+  />
+  <button onClick={saveDraft} className="bg-gray-600 text-white px-2 py-1 rounded">
+    Save Draft
+  </button>
+</div>
+
+<div className="mt-4">
+  <h4 className="font-bold">📝 Drafts</h4>
+  {drafts.map(d => (
+    <div key={d.id} className="text-sm text-gray-700 border-b py-1">
+      {d.text}
+    </div>
+  ))}
+</div>
+const [searchTerm, setSearchTerm] = useState("")
+const [searchResults, setSearchResults] = useState([])
+
+const searchMessages = async () => {
+  const token = localStorage.getItem("token")
+  const res = await fetch(`http://localhost:3001/groups/${groupId}/search?q=${searchTerm}`, {
+    headers: { "Authorization": `Bearer ${token}` }
+  })
+  const data = await res.json()
+  setSearchResults(data)
+}
+
+<div className="mt-2">
+  <input
+    type="text"
+    value={searchTerm}
+    onChange={e => setSearchTerm(e.target.value)}
+    placeholder="Search messages..."
+    className="border px-2 py-1 mr-2"
+  />
+  <button onClick={searchMessages} className="bg-blue-600 text-white px-2 py-1 rounded">
+    Search
+  </button>
+</div>
+
+{searchResults.length > 0 && (
+  <div className="mt-4">
+    <h4 className="font-bold">🔍 Search Results</h4>
+    {searchResults.map(m => (
+      <div key={m.id} className="text-sm text-gray-700 border-b py-1">
+        {m.text}
+      </div>
+    ))}
+  </div>
+)}
+{messages.map(m => (
+  <div key={m.id} className="text-sm text-gray-700 border-b py-1">
+    <span>{m.text}</span>
+    {m.forwarded && (
+      <span className="ml-2 text-xs italic text-gray-400">
+        (forwarded)
+      </span>
+    )}
+    {m.attachment_url && (
+      <a
+        href={m.attachment_url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="ml-2 text-blue-600 underline text-xs"
+      >
+        📎 View Attachment
+      </a>
+    )}
+  </div>
+))}

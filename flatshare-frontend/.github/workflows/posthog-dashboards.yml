@@ -1,0 +1,26 @@
+name: Provision PostHog Dashboards
+
+on:
+  workflow_dispatch:   # manual trigger
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  provision-dashboards:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up environment
+        run: sudo apt-get update && sudo apt-get install -y jq curl
+
+      - name: Run PostHog dashboard setup script
+        env:
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+          POSTHOG_HOST: https://app.posthog.com
+        run: |
+          chmod +x setup_posthog_dashboards.sh
+          ./setup_posthog_dashboards.sh

@@ -12,3 +12,7 @@ __pycache__/
 
 # Environment
 .env
+flatshare-frontend-old/
+__pycache__/
+*.pyc
+.env

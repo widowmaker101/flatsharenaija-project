@@ -9,7 +9,17 @@ html {
 
 body {
   margin: 0;
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  min-width: 320px;
-  min-height: 100vh;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.6;
+}
+
+main {
+  margin: 0 auto;
+  max-width: 1200px; /* keeps text centered */
+  padding: 1rem;
+}
+
+h1, h2, h3 {
+  word-break: break-word; /* prevents spillover */
 }

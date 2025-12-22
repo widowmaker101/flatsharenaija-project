@@ -1,3 +1,12 @@
+# FlatshareNaija Project
+
+## Structure
+- flatshare-frontend/ → React + Vite frontend
+- api/ → FastAPI backend
+
+## Deployment
+- Frontend: Vercel
+- Backend: FastAPI (Render/Heroku/Docker)
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
@@ -70,4 +79,4 @@ export default defineConfig([
     },
   },
 ])
-```
+

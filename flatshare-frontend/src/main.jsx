@@ -1,5 +1,10 @@
-...
-import EditProfile from "./pages/EditProfile"
-...
-<Route path="/profile/edit" element={<PrivateRoute><EditProfile /></PrivateRoute>} />
-...
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.jsx'
+import './index.css'
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+)

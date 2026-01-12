@@ -16,3 +16,8 @@ flatshare-frontend-old/
 __pycache__/
 *.pyc
 .env
+flatshare-frontend-old/
+flatsharenaija-project/  # Ignore any inner copies if recreated
+*.env
+__pycache__/
+*.pyc

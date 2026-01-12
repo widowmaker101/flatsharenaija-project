@@ -21,3 +21,7 @@ flatsharenaija-project/  # Ignore any inner copies if recreated
 *.env
 __pycache__/
 *.pyc
+api/flatshare-frontend/
+flatshare-frontend-old/
+flatsharenaija-project/  # Ignore recursive copies
+flatshare-project/

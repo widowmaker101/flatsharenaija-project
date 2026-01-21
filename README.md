@@ -1,9 +1,26 @@
 # FlatshareNaija Project
 
-## Structure
-- flatshare-frontend/ → React + Vite frontend
-- api/ → FastAPI backend
+## Frontend (React + DaisyUI)
+Location: /frontend
 
-## Deployment
-- Frontend: Vercel
-- Backend: FastAPI (Render/Heroku/Docker)
+Run locally:
+  cd frontend
+  npm install
+  npm run dev
+
+Deploy: Vercel
+  - Root directory: /frontend
+  - Build command: npm run build
+  - Output directory: dist
+
+## Backend (FastAPI)
+Location: /backend
+
+Run locally:
+  cd backend
+  pip install -r requirements.txt
+  uvicorn main:app --reload
+
+Deploy: Render/Heroku
+  - Entry point: backend/main.py
+  - Start command: uvicorn main:app --host 0.0.0.0 --port $PORT

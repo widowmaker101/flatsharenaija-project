@@ -7,9 +7,10 @@ import FindFlats from './pages/FindFlats';
 import PostFlat from './pages/PostFlat';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
-import About from './pages/About';
-import FlatDetail from './pages/FlatDetail';   // ← added for detail pages
-import NotFound from './components/NotFound';  // adjust path if different
+import NotFound from './components/NotFound';   // adjust path if needed
+
+// Optional: import About if you want to route it
+import About from './pages/About';   // ← add this line
 
 function App() {
   return (
@@ -21,14 +22,12 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/find-flats" element={<FindFlats />} />
-            <Route path="/search" element={<FindFlats />} />      {/* alias */}
             <Route path="/post-flat" element={<PostFlat />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
-            <Route path="/about" element={<About />} />
 
-            {/* Dynamic flat detail page */}
-            <Route path="/flat/:id" element={<FlatDetail />} />
+            {/* Optional - uncomment when you want the About page */}
+            {/* <Route path="/about" element={<About />} /> */}
 
             {/* Catch-all 404 */}
             <Route path="*" element={<NotFound />} />

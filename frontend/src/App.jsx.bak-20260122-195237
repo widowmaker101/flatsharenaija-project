@@ -4,12 +4,15 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './components/Home';
 import FindFlats from './pages/FindFlats';
+import FlatDetail from './pages/FlatDetail';
 import PostFlat from './pages/PostFlat';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
-import About from './pages/About';
-import FlatDetail from './pages/FlatDetail';   // ← added for detail pages
-import NotFound from './components/NotFound';  // adjust path if different
+import About from './pages/About';              // ← added for /about
+import NotFound from './components/NotFound';
+
+// Optional: if you want /search to be the same as /find-flats
+// import FindFlats from './pages/FindFlats';  // already imported
 
 function App() {
   return (
@@ -19,16 +22,13 @@ function App() {
 
         <main className="flex-grow">
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/"           element={<Home />} />
             <Route path="/find-flats" element={<FindFlats />} />
-            <Route path="/search" element={<FindFlats />} />      {/* alias */}
-            <Route path="/post-flat" element={<PostFlat />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/about" element={<About />} />
-
-            {/* Dynamic flat detail page */}
-            <Route path="/flat/:id" element={<FlatDetail />} />
+            <Route path="/search"     element={<FindFlats />} />     {/* alias for search */}
+            <Route path="/post-flat"  element={<PostFlat />} />
+            <Route path="/login"      element={<Login />} />
+            <Route path="/signup"     element={<SignUp />} />
+            <Route path="/about"      element={<About />} />         {/* now active */}
 
             {/* Catch-all 404 */}
             <Route path="*" element={<NotFound />} />

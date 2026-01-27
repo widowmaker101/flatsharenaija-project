@@ -3,9 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import Dict, Any
 
-from backend.models import Listing
-from backend.database import get_db
-
+from models import Listing
+from database import get_db
 
 app = FastAPI(
     title="Flatshare Naija API",

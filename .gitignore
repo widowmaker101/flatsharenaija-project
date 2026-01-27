@@ -8,3 +8,6 @@
 
 # Env
 *.env
+.env.local
+test.db
+__pycache__/

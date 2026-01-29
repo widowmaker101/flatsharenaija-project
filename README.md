@@ -1,26 +1,31 @@
-# FlatshareNaija Project
+# Flatshare Naija
 
-## Frontend (React + DaisyUI)
-Location: /frontend
+Full-stack flat-sharing platform for Nigeria (Lagos, Abuja, etc.)
 
-Run locally:
-  cd frontend
-  npm install
-  npm run dev
+## Features
+- User authentication (register/login/JWT)
+- Dynamic navbar (shows Post Flat + Logout + email when logged in)
+- Protected routes (e.g. /post-flat requires login)
+- Backend listings API protected with token
+- Image upload for flats
 
-Deploy: Vercel
-  - Root directory: /frontend
-  - Build command: npm run build
-  - Output directory: dist
+## Setup
 
-## Backend (FastAPI)
-Location: /backend
+### Backend
+cd backend
+/opt/anaconda3/bin/python3 -m venv venv
+source venv/bin/activate
+pip install fastapi uvicorn sqlalchemy pydantic python-jose[cryptography] passlib[bcrypt]
+uvicorn main:app --reload
 
-Run locally:
-  cd backend
-  pip install -r requirements.txt
-  uvicorn main:app --reload
+### Frontend
+cd frontend
+npm install
+npm run dev
 
-Deploy: Render/Heroku
-  - Entry point: backend/main.py
-  - Start command: uvicorn main:app --host 0.0.0.0 --port $PORT
+## Tech Stack
+- Backend: FastAPI + SQLAlchemy + SQLite
+- Frontend: React + Vite + Tailwind + daisyUI + React Router
+- Auth: JWT
+
+Enjoy!

@@ -1,51 +1,59 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import axios from 'axios'
+import toast from 'react-hot-toast'
 
 export default function FlatDetails() {
   const { id } = useParams()
   const [flat, setFlat] = useState(null)
   const [showChat, setShowChat] = useState(false)
   const [message, setMessage] = useState("")
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchFlat = async () => {
+      setLoading(true)
       try {
-        const res = await axios.get(`http://localhost:3001/flats/${id}`)
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/listings/${id}`)
         setFlat(res.data)
       } catch (err) {
         console.error(err)
+        toast.error("Failed to load flat details")
+      } finally {
+        setLoading(false)
       }
     }
     fetchFlat()
   }, [id])
 
   const handleSend = async () => {
+    if (!message.trim()) return
     try {
-      await axios.post(`http://localhost:3001/flats/${id}/messages`, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/listings/${id}/messages`, {
         message,
         sender: "tenant@example.com" // replace with logged-in user later
       })
-      alert('Message sent successfully')
+      toast.success('Message sent successfully')
       setMessage("")
       setShowChat(false)
     } catch (err) {
       console.error(err)
-      alert('Failed to send message')
+      toast.error('Failed to send message')
     }
   }
 
-  if (!flat) return <p className="p-6 text-gray-600">Loading flat details...</p>
+  if (loading) return <p className="p-6 text-gray-600">Loading flat details...</p>
+  if (!flat) return <p className="p-6 text-red-600">Flat not found</p>
 
   return (
     <div className="p-6 max-w-3xl mx-auto bg-white dark:bg-neutral-900 rounded-lg shadow border border-gray-200 dark:border-neutral-700">
-      <img src={flat.image_url} alt={flat.title} className="mb-6 rounded-lg shadow-md w-full object-cover" />
+      <img src={flat.image_url || 'https://via.placeholder.com/800x400?text=No+Image'} alt={flat.title} className="mb-6 rounded-lg shadow-md w-full object-cover" />
       <h2 className="text-3xl font-bold text-blue-700 dark:text-white mb-4">{flat.title}</h2>
       <div className="space-y-2 mb-6">
         <p className="text-gray-700 dark:text-gray-300"><strong>Location:</strong> {flat.location}</p>
-        <p className="text-gray-700 dark:text-gray-300"><strong>Price:</strong> ₦{flat.price}</p>
+        <p className="text-gray-700 dark:text-gray-300"><strong>Price:</strong> ₦{flat.price.toLocaleString()}</p>
         <p className="text-gray-700 dark:text-gray-300"><strong>Rooms:</strong> {flat.rooms}</p>
-        <p className="text-gray-600 dark:text-gray-400">{flat.description}</p>
+        {flat.description && <p className="text-gray-600 dark:text-gray-400">{flat.description}</p>}
       </div>
 
       <div className="flex gap-4">
@@ -89,7 +97,7 @@ export default function FlatDetails() {
               </button>
             </div>
           </div>
-        </div>
+        </div> 
       )}
     </div>
   )

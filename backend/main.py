@@ -1,16 +1,28 @@
 from fastapi import FastAPI, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from typing import Dict, Any
+import os
 
+# Import routers
+from routers import auth
 from models import Listing
 from database import get_db
 
+# Create FastAPI app FIRST
 app = FastAPI(
     title="Flatshare Naija API",
     description="Backend API for real estate listings",
     version="0.1.0"
 )
+
+# Create images folder & mount static files
+os.makedirs("static/images", exist_ok=True)
+app.mount("/images", StaticFiles(directory="static/images"), name="images")
+
+# Include routers AFTER app is created
+app.include_router(auth.router)
 
 # CORS - allow frontend to connect
 app.add_middleware(

@@ -1,31 +1,41 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
+import axios from 'axios';
+import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 
-export default function Listings() {
+const Listings = () => {
   const [listings, setListings] = useState([]);
 
   useEffect(() => {
-    axios.get(import.meta.env.VITE_API_URL + "/listings")
-      .then(res => setListings(res.data))
-      .catch(err => console.error(err));
+    const fetchListings = async () => {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/listings`);
+        setListings(res.data.items || []);
+      } catch (err) {
+        toast.error("Failed to load listings");
+        console.error(err);
+      }
+    };
+    fetchListings();
   }, []);
 
   return (
-    <div className="p-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {listings.map(listing => (
-        <div key={listing.id} className="card bg-base-200 shadow-xl">
-          <figure>
-            <img src={listing.image || "https://via.placeholder.com/400"} alt={listing.title} className="h-48 w-full object-cover"/>
-          </figure>
-          <div className="card-body">
-            <h2 className="card-title">{listing.title}</h2>
-            <p>{listing.description}</p>
-            <div className="card-actions justify-end">
-              <button className="btn btn-primary">View</button>
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">All Listings</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {listings.map(l => (
+          <div key={l.id} className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all">
+            <div className="card-body">
+              <h3 className="card-title text-xl">{l.title}</h3>
+              <p className="text-gray-600">{l.location}</p>
+              <p className="text-2xl font-bold text-success mt-2">
+                ₦{l.price.toLocaleString()}
+              </p>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
-  )
-}
+  );
+};
+
+export default Listings;

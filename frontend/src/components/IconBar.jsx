@@ -1,28 +1,36 @@
-import { NavLink } from "react-router-dom";
-import { FaHome, FaUser, FaCog, FaTachometerAlt } from "react-icons/fa";
-
-const linkClasses = ({ isActive }) =>
-  `p-3 rounded-lg transition ${
-    isActive
-      ? "bg-blue-100 text-blue-700 dark:bg-neutral-800 dark:text-white"
-      : "text-blue-600 dark:text-white hover:text-blue-800"
-  }`;
+import { Link } from 'react-router-dom';
+import { Home, User, Settings, BarChart2 } from 'lucide-react';  // Assuming lucide icons
+import { useAuth } from '../context/AuthContext.jsx';
 
 export default function IconBar() {
+  const { token } = useAuth();
+
   return (
-    <div className="flex gap-6 items-center">
-      <NavLink to="/" aria-label="Home" className={linkClasses}>
-        <FaHome size={28} />
-      </NavLink>
-      <NavLink to="/profile" aria-label="Profile" className={linkClasses}>
-        <FaUser size={28} />
-      </NavLink>
-      <NavLink to="/settings" aria-label="Settings" className={linkClasses}>
-        <FaCog size={28} />
-      </NavLink>
-      <NavLink to="/dashboard" aria-label="Dashboard" className={linkClasses}>
-        <FaTachometerAlt size={28} />
-      </NavLink>
+    <div className="flex items-center gap-4">
+      {/* House icon - always visible */}
+      <Link to="/" className="text-gray-700 dark:text-gray-300 hover:text-blue-600">
+        <Home size={24} />
+      </Link>
+
+      {/* Conditional icons - only show when logged in */}
+      {token && (
+        <>
+          {/* Human figure (profile) */}
+          <Link to="/profile" className="text-gray-700 dark:text-gray-300 hover:text-blue-600">
+            <User size={24} />
+          </Link>
+
+          {/* Wheel (settings) */}
+          <Link to="/settings" className="text-gray-700 dark:text-gray-300 hover:text-blue-600">
+            <Settings size={24} />
+          </Link>
+
+          {/* Meter (dashboard) */}
+          <Link to="/dashboard" className="text-gray-700 dark:text-gray-300 hover:text-blue-600">
+            <BarChart2 size={24} />
+          </Link>
+        </>
+      )}
     </div>
   );
 }

@@ -1,4 +1,3 @@
-
 from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -36,7 +35,7 @@ class Listing(Base):
     images = Column(String)     # comma-separated URLs or JSON string
     is_verified = Column(Boolean, default=False)
     is_available = Column(Boolean, default=True)
-
+    image_url = Column(String, nullable=True)
     owner_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("User", back_populates="listings")
 

@@ -1,45 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext.jsx';
+import { useNavigate } from 'react-router-dom';
 
-export default function Login() {
+export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
-  const { token, login } = useAuth();
-
-  useEffect(() => {
-    if (token) {
-      navigate('/');
-    }
-  }, [token, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/token`, new URLSearchParams({
-        username: email,
-        password,
-      }), {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
+        email,
+        password
       });
-
-      // Pass token + user object with email
-      login(res.data.access_token, { email });
-
-      toast.success('Logged in!');
-      navigate('/');
+      toast.success('Registered! Please login.');
+      navigate('/login');
     } catch (err) {
-      toast.error('Login failed');
+      toast.error('Registration failed');
       console.error(err);
     }
   };
 
   return (
     <div className="container mx-auto p-6 max-w-md">
-      <h1 className="text-3xl font-bold mb-6 text-center">Login</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">Register</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         <input
           type="email"
@@ -57,10 +43,10 @@ export default function Login() {
           className="input input-bordered w-full"
           required
         />
-        <button type="submit" className="btn btn-primary w-full">Login</button>
+        <button type="submit" className="btn btn-primary w-full">Register</button>
       </form>
       <p className="mt-4 text-center">
-        No account? <Link to="/signup" className="text-primary underline">Register</Link>
+        Have account? <a href="/login" className="text-primary underline">Login</a>
       </p>
     </div>
   );

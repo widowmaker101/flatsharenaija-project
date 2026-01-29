@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import FlatCard from './FlatCard.jsx'
 import { useLocation } from 'react-router-dom'
+import toast from 'react-hot-toast'
 
 export default function FlatSearch() {
   const loc = useLocation()
@@ -16,14 +17,16 @@ export default function FlatSearch() {
   const fetchFlats = async () => {
     setLoading(true)
     try {
-      const url = new URL('http://localhost:3001/flats')
+      const url = new URL(`${import.meta.env.VITE_API_URL}/api/listings`)
       if (query) url.searchParams.set('location', query)
       if (priceMax) url.searchParams.set('price_lte', priceMax)
       const res = await axios.get(url.toString())
-      const filtered = rooms ? res.data.filter(f => Number(f.rooms) >= Number(rooms)) : res.data
+      const filtered = rooms ? res.data.items.filter(f => Number(f.rooms) >= Number(rooms)) : res.data.items
       setFlats(filtered)
+      toast.success("Search complete!")
     } catch (e) {
       console.error(e)
+      toast.error("Failed to search flats")
     } finally {
       setLoading(false)
     }
@@ -32,18 +35,39 @@ export default function FlatSearch() {
   useEffect(() => { fetchFlats() }, [])
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[260px,1fr] gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-[260px,1fr] gap-6 p-6">
       {/* Filters */}
       <aside className="rounded-2xl border border-white/20 bg-white/60 dark:bg-white/5 backdrop-blur p-4 sticky top-20 h-fit shadow-glass">
         <div className="font-bold mb-3">Filters</div>
         <label className="block text-sm mb-2">Location</label>
-        <input value={query} onChange={(e)=>setQuery(e.target.value)} className="w-full rounded-lg border-2 p-2 mb-3" placeholder="Abuja, Lagos" />
+        <input
+          value={query}
+          onChange={(e)=>setQuery(e.target.value)}
+          className="w-full rounded-lg border-2 p-2 mb-3"
+          placeholder="Abuja, Lagos"
+        />
         <label className="block text-sm mb-2">Max price (₦)</label>
-        <input value={priceMax} onChange={(e)=>setPriceMax(e.target.value)} className="w-full rounded-lg border-2 p-2 mb-3" placeholder="150000" />
+        <input
+          value={priceMax}
+          onChange={(e)=>setPriceMax(e.target.value)}
+          className="w-full rounded-lg border-2 p-2 mb-3"
+          placeholder="150000"
+          type="number"
+        />
         <label className="block text-sm mb-2">Min rooms</label>
-        <input value={rooms} onChange={(e)=>setRooms(e.target.value)} className="w-full rounded-lg border-2 p-2 mb-4" placeholder="2" />
-        <button onClick={fetchFlats} className="w-full rounded-lg bg-brand-600 text-white py-2 font-bold hover:bg-brand-800">
-          Apply
+        <input
+          value={rooms}
+          onChange={(e)=>setRooms(e.target.value)}
+          className="w-full rounded-lg border-2 p-2 mb-4"
+          placeholder="2"
+          type="number"
+        />
+        <button
+          onClick={fetchFlats}
+          className="w-full rounded-lg bg-brand-600 text-white py-2 font-bold hover:bg-brand-800"
+          disabled={loading}
+        >
+          {loading ? 'Searching...' : 'Apply'}
         </button>
       </aside>
 
@@ -52,7 +76,7 @@ export default function FlatSearch() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold">Results</h2>
           <div className="text-sm text-neutral-600 dark:text-neutral-300">
-            {loading ? 'Loading…' : `${flats.length} flats`}
+            {loading ? 'Searching...' : `${flats.length} flats found`}
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

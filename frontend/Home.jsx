@@ -142,10 +142,11 @@ export default function Home() {
             >
               <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-300 overflow-hidden">
                 <figure>
-                  <img
-                    src={flat.image}
-                    alt={flat.title}
-                    className="w-full h-56 object-cover"
+<img
+  src={flat.image_url || 'https://placehold.co/800x400?text=No+Image'}  // safer placeholder
+  alt={flat.title}
+  className="w-full h-64 object-cover transform group-hover:scale-110 transition-transform duration-700"
+/>
                   />
                 </figure>
                 <div className="card-body p-5">

@@ -1,30 +1,51 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from typing import Dict, Any
-
-from models import Listing
 from database import get_db
+from models import Listing
+import os
+from uuid import uuid4
 
-router = APIRouter(prefix="/listings", tags=["listings"])
+router = APIRouter(prefix="/api/listings", tags=["listings"])
 
-@router.get("/", response_model=Dict[str, Any])
-def get_listings(
-    limit: int = Query(10, ge=1, le=100, description="Number of listings to return"),
-    offset: int = Query(0, ge=0, description="Number of listings to skip"),
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
+
+@router.post("/")
+async def create_listing(
+    title: str,
+    location: str,
+    price: float,
+    rooms: int,
+    description: str = None,
+    image: UploadFile = File(None),
+    token: str = Depends(oauth2_scheme),  # <-- Requires valid JWT
     db: Session = Depends(get_db)
 ):
-    total = db.query(Listing).count()
-    listings = (
-        db.query(Listing)
-        .order_by(Listing.created_at.desc())
-        .offset(offset)
-        .limit(limit)
-        .all()
+    # Optional: decode token to get current user (uncomment when needed)
+    # from jose import jwt
+    # try:
+    #     payload = jwt.decode(token, "your-secret-key-change-this", algorithms=["HS256"])
+    #     current_user_email = payload.get("sub")
+    # except Exception:
+    #     raise HTTPException(status_code=401, detail="Invalid token")
+
+    new_listing = Listing(
+        title=title,
+        location=location,
+        price=price,
+        rooms=rooms,
+        description=description,
     )
-    return {
-        "items": listings,
-        "total": total,
-        "limit": limit,
-        "offset": offset,
-        "has_more": (offset + limit) < total
-    }
+
+    if image:
+        os.makedirs("static/images", exist_ok=True)
+        filename = f"{uuid4()}_{image.filename}"
+        file_path = f"static/images/{filename}"
+        with open(file_path, "wb") as f:
+            f.write(await image.read())
+        new_listing.image_url = f"/images/{filename}"
+
+    db.add(new_listing)
+    db.commit()
+    db.refresh(new_listing)
+    return new_listing

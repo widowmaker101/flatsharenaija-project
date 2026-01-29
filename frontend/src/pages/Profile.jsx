@@ -1,27 +1,28 @@
-import { useState, useEffect } from "react"
+import { useAuth } from '../context/AuthContext.jsx';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 export default function Profile() {
-  const [user, setUser] = useState(null)
+  const { token, user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("token")
-    if (!token) return
-    fetch("http://localhost:3001/profile", {
-      headers: { "Authorization": `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(data => setUser(data))
-  }, [])
-
-  if (!user) return <div className="p-6">Loading profile...</div>
+    if (!token) {
+      navigate('/login');
+    }
+  }, [token, navigate]);
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">My Profile</h1>
-      <div className="bg-white shadow rounded-lg p-4 max-w-md">
-        <p><span className="font-semibold">Username:</span> {user.username}</p>
-        <p><span className="font-semibold">User ID:</span> {user.id}</p>
-      </div>
+    <div className="container mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6">Your Profile</h1>
+      {user ? (
+        <div className="card bg-base-100 shadow-xl p-6">
+          <p><strong>Email:</strong> {user.email}</p>
+          {/* Add more fields later */}
+        </div>
+      ) : (
+        <p>Loading profile...</p>
+      )}
     </div>
-  )
+  );
 }

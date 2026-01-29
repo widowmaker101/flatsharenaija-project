@@ -1,13 +1,27 @@
-# Node
-/frontend/node_modules
-/frontend/dist
-
 # Python
-/backend/__pycache__/
-/backend/*.db
-
-# Env
-*.env
-.env.local
-test.db
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+*.env
+
+# Node
+node_modules/
+.vite/
+dist/
+.DS_Store
+npm-debug.log
+yarn-error.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# macOS
+.DS_Store

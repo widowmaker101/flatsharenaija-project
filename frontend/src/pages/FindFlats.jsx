@@ -42,7 +42,11 @@ const FindFlats = () => {
                   ₦{flat.price.toLocaleString()}
                 </p>
                 <p className="mt-1">{flat.rooms} {flat.rooms === 1 ? 'room' : 'rooms'}</p>
-              </div>
+             <div className="badge badge-outline mt-2">
+  {flat.gender_preference === 'male_only' ? 'Male Only' :
+   flat.gender_preference === 'female_only' ? 'Female Only' : 'Any Gender'}
+</div>
+             </div>
             </div>
           ))}
         </div>

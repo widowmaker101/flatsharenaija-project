@@ -3,13 +3,14 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 import os
 from uuid import uuid4
+from datetime import datetime
 from jose import jwt, JWTError
 
 from fastapi.security import OAuth2PasswordBearer
 from routers.auth import oauth2_scheme, SECRET_KEY, ALGORITHM
 from database import get_db
 from models import Listing, User
-from schemas import ListingOut  # ← new import
+from schemas import ListingOut
 
 router = APIRouter(prefix="/api/listings", tags=["listings"])
 
@@ -17,7 +18,7 @@ router = APIRouter(prefix="/api/listings", tags=["listings"])
 async def get_listings(limit: int = 10, db: Session = Depends(get_db)):
     listings = db.query(Listing).limit(limit).all()
     return {
-        "items": [ListingOut.from_orm(l) for l in listings],  # convert to Pydantic
+        "items": [ListingOut.from_orm(l) for l in listings],
         "total": len(listings),
         "limit": limit,
         "offset": 0,
@@ -33,12 +34,15 @@ async def get_listing(listing_id: int, db: Session = Depends(get_db)):
 
 @router.get("/my", response_model=dict)
 async def get_my_listings(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    print("GET /api/listings/my called")
+
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         if email is None:
             raise HTTPException(status_code=401, detail="Invalid token")
-    except JWTError:
+    except JWTError as e:
+        print("JWT error:", str(e))
         raise HTTPException(status_code=401, detail="Invalid token")
 
     user = db.query(User).filter(User.email == email).first()

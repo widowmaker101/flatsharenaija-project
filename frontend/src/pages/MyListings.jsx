@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext.jsx';
-import { MapPin, DollarSign, Bed, Edit, Trash2, PlusSquare, List } from 'lucide-react';
+import { MapPin, DollarSign, Bed, Edit, Trash2, PlusSquare } from 'lucide-react';
 
 export default function MyListings() {
   const { token } = useAuth();
@@ -25,11 +25,24 @@ export default function MyListings() {
         const res = await axios.get('/api/listings/my', {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setListings(res.data.items || []);
+        setListings(res.data.items || res.data || []);
       } catch (err) {
-        console.error(err);
-        setError('Failed to load your listings');
-        toast.error(err.response?.data?.detail || 'Error loading listings');
+        console.error('My listings error:', err.response?.data || err);
+        const detail = err.response?.data?.detail;
+        if (typeof detail === 'string') {
+          setError(detail);
+          toast.error(detail);
+        } else if (Array.isArray(detail)) {
+          const msg = detail.map(d => d.msg).join(', ') || 'Validation error';
+          setError(msg);
+          toast.error(msg);
+        } else {
+          setError('Failed to load your listings');
+          toast.error('Error loading listings');
+        }
+        if (err.response?.status === 401 || err.response?.status === 422) {
+          navigate('/login');
+        }
       } finally {
         setLoading(false);
       }
@@ -38,16 +51,16 @@ export default function MyListings() {
   }, [token, navigate]);
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this listing?')) return;
+    if (!window.confirm('Delete this listing permanently?')) return;
 
     try {
       await axios.delete(`/api/listings/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setListings(prev => prev.filter(l => l.id !== id));
-      toast.success('Listing deleted successfully');
+      toast.success('Deleted');
     } catch (err) {
-      toast.error('Failed to delete listing');
+      toast.error('Delete failed');
       console.error(err);
     }
   };

@@ -1,33 +1,90 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import APIRouter, Depends, HTTPException, Form, UploadFile, File
 from sqlalchemy.orm import Session
-from database import get_db
-from models import Listing
+from typing import List, Optional
 import os
 from uuid import uuid4
+from jose import jwt, JWTError
+
+from fastapi.security import OAuth2PasswordBearer
+from routers.auth import oauth2_scheme, SECRET_KEY, ALGORITHM
+from database import get_db
+from models import Listing, User
+from schemas import ListingOut  # ← new import
 
 router = APIRouter(prefix="/api/listings", tags=["listings"])
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
+@router.get("/", response_model=dict)
+async def get_listings(limit: int = 10, db: Session = Depends(get_db)):
+    listings = db.query(Listing).limit(limit).all()
+    return {
+        "items": [ListingOut.from_orm(l) for l in listings],  # convert to Pydantic
+        "total": len(listings),
+        "limit": limit,
+        "offset": 0,
+        "has_more": False
+    }
 
-@router.post("/")
+@router.get("/{listing_id}", response_model=ListingOut)
+async def get_listing(listing_id: int, db: Session = Depends(get_db)):
+    listing = db.query(Listing).filter(Listing.id == listing_id).first()
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    return ListingOut.from_orm(listing)
+
+@router.get("/my", response_model=dict)
+async def get_my_listings(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    listings = db.query(Listing).filter(Listing.owner_id == user.id).all()
+    return {
+        "items": [ListingOut.from_orm(l) for l in listings],
+        "total": len(listings)
+    }
+
+@router.post("/", response_model=ListingOut)
 async def create_listing(
-    title: str,
-    location: str,
-    price: float,
-    rooms: int,
-    description: str = None,
+    title: str = Form(...),
+    location: str = Form(...),
+    price: float = Form(...),
+    rooms: int = Form(...),
+    description: str = Form(None),
+    gender_preference: str = Form(None),
     image: UploadFile = File(None),
-    token: str = Depends(oauth2_scheme),  # <-- Requires valid JWT
+    token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
 ):
-    # Optional: decode token to get current user (uncomment when needed)
-    # from jose import jwt
-    # try:
-    #     payload = jwt.decode(token, "your-secret-key-change-this", algorithms=["HS256"])
-    #     current_user_email = payload.get("sub")
-    # except Exception:
-    #     raise HTTPException(status_code=401, detail="Invalid token")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    image_url = None
+    if image:
+        if not image.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="File must be an image")
+        os.makedirs("static/images", exist_ok=True)
+        filename = f"{uuid4()}_{image.filename}"
+        file_path = f"static/images/{filename}"
+        with open(file_path, "wb") as f:
+            f.write(await image.read())
+        image_url = f"/images/{filename}"
 
     new_listing = Listing(
         title=title,
@@ -35,17 +92,13 @@ async def create_listing(
         price=price,
         rooms=rooms,
         description=description,
+        gender_preference=gender_preference,
+        image_url=image_url,
+        owner_id=user.id
     )
-
-    if image:
-        os.makedirs("static/images", exist_ok=True)
-        filename = f"{uuid4()}_{image.filename}"
-        file_path = f"static/images/{filename}"
-        with open(file_path, "wb") as f:
-            f.write(await image.read())
-        new_listing.image_url = f"/images/{filename}"
-
     db.add(new_listing)
     db.commit()
     db.refresh(new_listing)
-    return new_listing
+    return ListingOut.from_orm(new_listing)
+
+print("Listings router loaded successfully")

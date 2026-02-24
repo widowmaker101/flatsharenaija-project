@@ -2,25 +2,18 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 
-class ListingBase(BaseModel):
+class ListingOut(BaseModel):
+    id: int
     title: str
     location: str
     price: float
     rooms: int
-    bathrooms: Optional[int] = None
-    amenities: Optional[str] = None
-    images: Optional[str] = None
-    is_verified: bool = False
-    is_available: bool = True
-
-class ListingCreate(ListingBase):
-    pass
-
-class Listing(ListingBase):
-    id: int
+    description: Optional[str] = None
+    gender_preference: Optional[str] = None
+    image_url: Optional[str] = None
     owner_id: int
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
 
     class Config:
-        orm_mode = True  # ← enables conversion from SQLAlchemy objects
+        from_attributes = True  # allows .from_orm() or model_validate()

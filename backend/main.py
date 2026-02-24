@@ -1,33 +1,43 @@
+# main.py
 from fastapi import FastAPI, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from typing import Dict, Any
+from dotenv import load_dotenv
+load_dotenv()  # Must be before importing routers/auth
 import os
 
 # Import routers
-from routers import auth
+from routers import auth, listings
 from models import Listing
 from database import get_db
 
-# Create FastAPI app FIRST
+# Create FastAPI app
 app = FastAPI(
     title="Flatshare Naija API",
     description="Backend API for real estate listings",
     version="0.1.0"
 )
 
-# Create images folder & mount static files
+# Create static folders and mount them
 os.makedirs("static/images", exist_ok=True)
+os.makedirs("static/avatars", exist_ok=True)
 app.mount("/images", StaticFiles(directory="static/images"), name="images")
+app.mount("/avatars", StaticFiles(directory="static/avatars"), name="avatars")
 
-# Include routers AFTER app is created
+# Include all routers
 app.include_router(auth.router)
+app.include_router(listings.router)  # ← this loads POST /api/listings
 
-# CORS - allow frontend to connect
+# CORS middleware - allows frontend to connect
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change to your frontend domain in production
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://your-frontend-domain.com",  # add your production domain here later
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -37,28 +47,3 @@ app.add_middleware(
 def read_root():
     return {"message": "Flatshare Naija API is running!"}
 
-@app.get("/api/listings", response_model=Dict[str, Any])
-def get_listings(
-    limit: int = Query(10, ge=1, le=100, description="Number of listings to return"),
-    offset: int = Query(0, ge=0, description="Number of listings to skip"),
-    db: Session = Depends(get_db)
-):
-    total = db.query(Listing).count()
-    listings = (
-        db.query(Listing)
-        .order_by(Listing.created_at.desc())
-        .offset(offset)
-        .limit(limit)
-        .all()
-    )
-    # Convert to dicts to avoid serialization issues
-    items = [listing.__dict__ for listing in listings]
-    for item in items:
-        item.pop('_sa_instance_state', None)  # remove internal SQLAlchemy junk
-    return {
-        "items": items,
-        "total": total,
-        "limit": limit,
-        "offset": offset,
-        "has_more": (offset + limit) < total
-    }

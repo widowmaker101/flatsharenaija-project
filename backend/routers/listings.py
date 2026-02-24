@@ -25,20 +25,14 @@ async def get_listings(limit: int = 10, db: Session = Depends(get_db)):
         "has_more": False
     }
 
-@router.get("/{listing_id}", response_model=ListingOut)
-async def get_listing(listing_id: int, db: Session = Depends(get_db)):
-    listing = db.query(Listing).filter(Listing.id == listing_id).first()
-    if not listing:
-        raise HTTPException(status_code=404, detail="Listing not found")
-    return ListingOut.from_orm(listing)
-
+# FIXED ORDER: /my before /{listing_id}
 @router.get("/my", response_model=dict)
 async def get_my_listings(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    print("GET /api/listings/my called")
-
+    print("GET /my called - token:", token[:20] + "..." if token else "MISSING")
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
+        print("Decoded email:", email)
         if email is None:
             raise HTTPException(status_code=401, detail="Invalid token")
     except JWTError as e:
@@ -47,13 +41,22 @@ async def get_my_listings(token: str = Depends(oauth2_scheme), db: Session = Dep
 
     user = db.query(User).filter(User.email == email).first()
     if not user:
+        print("User not found for email:", email)
         raise HTTPException(status_code=401, detail="User not found")
 
     listings = db.query(Listing).filter(Listing.owner_id == user.id).all()
+    print(f"Found {len(listings)} listings for user {user.id}")
     return {
         "items": [ListingOut.from_orm(l) for l in listings],
         "total": len(listings)
     }
+
+@router.get("/{listing_id}", response_model=ListingOut)
+async def get_listing(listing_id: int, db: Session = Depends(get_db)):
+    listing = db.query(Listing).filter(Listing.id == listing_id).first()
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    return ListingOut.from_orm(listing)
 
 @router.post("/", response_model=ListingOut)
 async def create_listing(

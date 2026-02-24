@@ -11,6 +11,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
+    phone_number = Column(String(20), nullable=True)
     name = Column(String, nullable=True)
     role = Column(String, default="user")           # e.g. "user", "admin", "landlord"
     is_active = Column(Boolean, default=True)
@@ -29,6 +30,7 @@ class Listing(Base):
     description = Column(String, nullable=True)
     location = Column(String, nullable=False)
     price = Column(Float, nullable=False)
+    gender_preference = Column(String(20), nullable=True)  # 'male_only', 'female_only', 'any'
     rooms = Column(Integer, nullable=False)
     bathrooms = Column(Integer, nullable=True)
     amenities = Column(String)  # comma-separated, e.g. "furnished,generator,solar"

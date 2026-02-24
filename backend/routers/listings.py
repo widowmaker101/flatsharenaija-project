@@ -109,3 +109,31 @@ async def create_listing(
     return ListingOut.from_orm(new_listing)
 
 print("Listings router loaded successfully")
+@router.delete("/{listing_id}")
+async def delete_listing(
+    listing_id: int,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    listing = db.query(Listing).filter(Listing.id == listing_id).first()
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+
+    if listing.owner_id != user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this listing")
+
+    db.delete(listing)
+    db.commit()
+    return {"message": "Listing deleted successfully"}

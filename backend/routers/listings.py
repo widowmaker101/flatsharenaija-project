@@ -109,6 +109,91 @@ async def create_listing(
     return ListingOut.from_orm(new_listing)
 
 print("Listings router loaded successfully")
+
+@router.delete("/{listing_id}")
+async def delete_listing(
+    listing_id: int,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    listing = db.query(Listing).filter(Listing.id == listing_id).first()
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+
+    if listing.owner_id != user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this listing")
+
+    db.delete(listing)
+    db.commit()
+    return {"message": "Listing deleted successfully"}
+
+
+@router.put("/{listing_id}", response_model=ListingOut)
+async def update_listing(
+    listing_id: int,
+    title: str = Form(...),
+    location: str = Form(...),
+    price: float = Form(...),
+    rooms: int = Form(...),
+    description: str = Form(None),
+    gender_preference: str = Form(None),
+    image: UploadFile = File(None),
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email = payload.get("sub")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    listing = db.query(Listing).filter(Listing.id == listing_id).first()
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+
+    if listing.owner_id != user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    # Update fields
+    listing.title = title
+    listing.location = location
+    listing.price = price
+    listing.rooms = rooms
+    listing.description = description
+    listing.gender_preference = gender_preference
+
+    if image:
+        if not image.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="File must be an image")
+        os.makedirs("static/images", exist_ok=True)
+        filename = f"{uuid4()}_{image.filename}"
+        file_path = f"static/images/{filename}"
+        with open(file_path, "wb") as f:
+            f.write(await image.read())
+        listing.image_url = f"/images/{filename}"
+
+    db.commit()
+    db.refresh(listing)
+    return ListingOut.from_orm(listing)
+
+
+
 @router.delete("/{listing_id}")
 async def delete_listing(
     listing_id: int,

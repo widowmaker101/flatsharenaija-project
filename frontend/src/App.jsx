@@ -1,6 +1,10 @@
 // src/App.jsx
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import MyListings from "./pages/MyListings.jsx";
+import EditListing from "./pages/EditListing.jsx";
+
+
 import Footer from './components/Footer';
 import Home from './components/Home';
 import FindFlats from './pages/FindFlats';
@@ -22,6 +26,11 @@ function App() {
 
         <main className="flex-grow">
           <Routes>
+        <Route path="/edit-listing/:id" element={<EditListing />} />
+
+        <Route path="/edit-listing/:id" element={<EditListing />} />
+        <Route path="/my-listings" element={<MyListings />} />
+
             <Route path="/" element={<Home />} />
             <Route path="/find-flats" element={<FindFlats />} />
             <Route path="/search" element={<FindFlats />} />

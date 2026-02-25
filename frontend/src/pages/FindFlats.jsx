@@ -14,6 +14,7 @@ const FindFlats = () => {
   const [bedrooms, setBedrooms] = useState('');
   const [furnished, setFurnished] = useState('');
   const [serviceCharge, setServiceCharge] = useState('');
+  const [locationSearch, setLocationSearch] = useState(''); // ← new
 
   const fetchFlats = async () => {
     setLoading(true);
@@ -21,7 +22,7 @@ const FindFlats = () => {
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/listings`);
       const data = res.data.items || [];
       setFlats(data);
-      setFilteredFlats(data); // initial full list
+      setFilteredFlats(data);
       if (data.length === 0) {
         toast('No flats found — try again later', { icon: '🔍' });
       }
@@ -37,11 +38,11 @@ const FindFlats = () => {
     fetchFlats();
   }, []);
 
-  // Apply filters whenever any filter value changes
+  // Apply all filters
   useEffect(() => {
     let result = [...flats];
 
-    // Price range
+    // Price
     if (minPrice !== '') {
       result = result.filter(flat => Number(flat.price) >= Number(minPrice));
     }
@@ -49,32 +50,31 @@ const FindFlats = () => {
       result = result.filter(flat => Number(flat.price) <= Number(maxPrice));
     }
 
-    // Gender preference
+    // Gender
     if (genderPref !== '') {
       result = result.filter(flat => flat.gender_preference === genderPref);
     }
 
-    // Bedrooms (assuming flat.rooms is number of bedrooms)
+    // Bedrooms
     if (bedrooms !== '') {
       const minBeds = bedrooms === '4+' ? 4 : Number(bedrooms);
       result = result.filter(flat => Number(flat.rooms) >= minBeds);
     }
 
-    // Furnished status (you will need to add this field to your backend model later)
-    if (furnished !== '') {
-      // For now we just log - add real field when backend supports it
-      console.log(`Filtering for furnished: ${furnished}`);
-      // result = result.filter(flat => flat.furnished_status === furnished);
+    // Location search (partial, case-insensitive)
+    if (locationSearch.trim() !== '') {
+      const searchTerm = locationSearch.toLowerCase().trim();
+      result = result.filter(flat =>
+        flat.location?.toLowerCase().includes(searchTerm)
+      );
     }
 
-    // Service charge (you will need to add this field to backend)
-    if (serviceCharge !== '') {
-      console.log(`Filtering for service charge: ${serviceCharge}`);
-      // result = result.filter(flat => flat.service_charge_included === (serviceCharge === 'included'));
-    }
+    // Furnished & Service Charge (placeholders - activate when backend has these fields)
+    // if (furnished !== '') { ... }
+    // if (serviceCharge !== '') { ... }
 
     setFilteredFlats(result);
-  }, [minPrice, maxPrice, genderPref, bedrooms, furnished, serviceCharge, flats]);
+  }, [minPrice, maxPrice, genderPref, bedrooms, locationSearch, flats]);
 
   const resetFilters = () => {
     setMinPrice('');
@@ -83,15 +83,14 @@ const FindFlats = () => {
     setBedrooms('');
     setFurnished('');
     setServiceCharge('');
+    setLocationSearch('');
   };
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center md:text-left">
-        Find Your Next Flat
-      </h1>
+      <h1 className="text-3xl md:text-4xl font-bold mb-8">Find Your Next Flat</h1>
 
-      {/* Filters Section */}
+      {/* Filters */}
       <div className="mb-10 bg-base-100 p-6 md:p-8 rounded-2xl shadow-xl">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <h2 className="text-2xl font-bold">Filters</h2>
@@ -103,7 +102,19 @@ const FindFlats = () => {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {/* Location Search - NEW */}
+          <div className="col-span-1 sm:col-span-2 lg:col-span-1 xl:col-span-1">
+            <label className="block text-sm font-medium mb-2">Location / Area</label>
+            <input
+              type="text"
+              placeholder="e.g. Lekki, Ikeja, Maitama..."
+              value={locationSearch}
+              onChange={e => setLocationSearch(e.target.value)}
+              className="input input-bordered w-full"
+            />
+          </div>
+
           {/* Min Price */}
           <div>
             <label className="block text-sm font-medium mb-2">Min Price (₦)</label>
@@ -128,7 +139,7 @@ const FindFlats = () => {
             />
           </div>
 
-          {/* Gender Preference */}
+          {/* Gender */}
           <div>
             <label className="block text-sm font-medium mb-2">Gender</label>
             <select
@@ -197,9 +208,9 @@ const FindFlats = () => {
           {filteredFlats.map(flat => (
             <div 
               key={flat.id} 
-              className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden"
+              className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden rounded-2xl"
             >
-              <figure className="relative">
+              <figure>
                 <img
                   src={`${import.meta.env.VITE_API_URL}${flat.image_url}` || 'https://placehold.co/600x400?text=No+Image'}
                   alt={flat.title}

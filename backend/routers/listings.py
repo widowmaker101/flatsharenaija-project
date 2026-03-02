@@ -158,6 +158,10 @@ async def update_listing(
     rooms: int = Form(...),
     description: str = Form(None),
     gender_preference: str = Form(None),
+    furnished_status: str = Form(None),               # ← added
+    service_charge_included: bool = Form(False),      # ← added
+    amenities: str = Form(None),                      # ← added
+    bathrooms: int = Form(None), 
     image: UploadFile = File(None),
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)

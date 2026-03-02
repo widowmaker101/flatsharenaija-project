@@ -58,6 +58,7 @@ async def get_listing(listing_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Listing not found")
     return ListingOut.from_orm(listing)
 
+
 @router.post("/", response_model=ListingOut)
 async def create_listing(
     title: str = Form(...),
@@ -66,6 +67,10 @@ async def create_listing(
     rooms: int = Form(...),
     description: str = Form(None),
     gender_preference: str = Form(None),
+    bathrooms: int = Form(None),
+    amenities: str = Form(None),
+    furnished_status: str = Form(None),
+    service_charge_included: bool = Form(False),
     image: UploadFile = File(None),
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
@@ -100,6 +105,10 @@ async def create_listing(
         rooms=rooms,
         description=description,
         gender_preference=gender_preference,
+        bathrooms=bathrooms,
+        amenities=amenities,
+        furnished_status=furnished_status,
+        service_charge_included=service_charge_included,
         image_url=image_url,
         owner_id=user.id
     )
@@ -170,13 +179,21 @@ async def update_listing(
     if listing.owner_id != user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    # Update fields
+    # Update fields (only if provided)
     listing.title = title
     listing.location = location
     listing.price = price
     listing.rooms = rooms
-    listing.description = description
-    listing.gender_preference = gender_preference
+    listing.description = description or listing.description
+    listing.gender_preference = gender_preference or listing.gender_preference
+    listing.furnished_status = furnished_status or listing.furnished_status
+    listing.service_charge_included = service_charge_included
+    listing.amenities = amenities or listing.amenities
+    listing.bathrooms = bathrooms or listing.bathrooms
+    if description is not None:
+        listing.description = description
+    if gender_preference is not None:
+        listing.gender_preference = gender_preference
 
     if image:
         if not image.content_type.startswith('image/'):
@@ -222,3 +239,58 @@ async def delete_listing(
     db.delete(listing)
     db.commit()
     return {"message": "Listing deleted successfully"}
+
+@router.put("/{listing_id}", response_model=ListingOut)
+async def update_listing(
+    listing_id: int,
+    title: str = Form(...),
+    location: str = Form(...),
+    price: float = Form(...),
+    rooms: int = Form(...),
+    description: str = Form(None),
+    gender_preference: str = Form(None),
+    image: UploadFile = File(None),
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    listing = db.query(Listing).filter(Listing.id == listing_id).first()
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+
+    if listing.owner_id != user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to edit this listing")
+
+    # Update fields
+    listing.title = title
+    listing.location = location
+    listing.price = price
+    listing.rooms = rooms
+    listing.description = description or listing.description
+    listing.gender_preference = gender_preference or listing.gender_preference
+
+    # Optional new image
+    if image:
+        if not image.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="File must be an image")
+        os.makedirs("static/images", exist_ok=True)
+        filename = f"{uuid4()}_{image.filename}"
+        file_path = f"static/images/{filename}"
+        with open(file_path, "wb") as f:
+            f.write(await image.read())
+        listing.image_url = f"/images/{filename}"
+
+    db.commit()
+    db.refresh(listing)
+    return ListingOut.from_orm(listing)

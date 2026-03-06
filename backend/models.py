@@ -1,3 +1,4 @@
+# models.py
 from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -7,7 +8,7 @@ Base = declarative_base()
 
 class User(Base):
     __tablename__ = "users"
-
+    
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
@@ -17,8 +18,8 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    # Relationship to listings (one user can post many listings)
+    
+    # Relationships
     listings = relationship("Listing", back_populates="owner")
 
 
@@ -32,12 +33,14 @@ class Listing(Base):
     price = Column(Float, nullable=False)
     gender_preference = Column(String(20), nullable=True)  # 'male_only', 'female_only', 'any'
     rooms = Column(Integer, nullable=False)
-    bathrooms = Column(Integer, nullable=True)
-    amenities = Column(String)  # comma-separated, e.g. "furnished,generator,solar"
-    images = Column(String)     # comma-separated URLs or JSON string
+    bathrooms = Column(Integer, nullable=True)            # added
+    amenities = Column(String, nullable=True)             # comma-separated string
+    furnished_status = Column(String(50), nullable=True)  # 'furnished', 'semi_furnished', 'unfurnished'
+    service_charge_included = Column(Boolean, default=False)
+    image_url = Column(String, nullable=True)             # main image
+    images = Column(String, nullable=True)                # additional images as comma-separated or JSON
     is_verified = Column(Boolean, default=False)
     is_available = Column(Boolean, default=True)
-    image_url = Column(String, nullable=True)
     owner_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("User", back_populates="listings")
 

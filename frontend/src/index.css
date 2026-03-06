@@ -46,3 +46,16 @@
 .btn-primary:hover {
   @apply brightness-110;
 }
+
+/* Gender preference badges */
+.badge-gender-male {
+  @apply bg-blue-100 text-blue-800 border-blue-300 px-3 py-1 font-medium;
+}
+
+.badge-gender-female {
+  @apply bg-pink-100 text-pink-800 border-pink-300 px-3 py-1 font-medium;
+}
+
+.badge-gender-any {
+  @apply bg-gray-200 text-gray-800 border-gray-400 px-3 py-1 font-medium;
+}

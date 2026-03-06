@@ -3,8 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import MyListings from "./pages/MyListings.jsx";
 import EditListing from "./pages/EditListing.jsx";
-
-
 import Footer from './components/Footer';
 import Home from './components/Home';
 import FindFlats from './pages/FindFlats';
@@ -26,19 +24,18 @@ function App() {
 
         <main className="flex-grow">
           <Routes>
-        <Route path="/edit-listing/:id" element={<EditListing />} />
-
-        <Route path="/edit-listing/:id" element={<EditListing />} />
-        <Route path="/my-listings" element={<MyListings />} />
+            <Route path="/edit-listing/:id" element={<EditListing />} />
+            <Route path="/my-listings" element={<MyListings />} />
 
             <Route path="/" element={<Home />} />
             <Route path="/find-flats" element={<FindFlats />} />
-            <Route path="/search" element={<FindFlats />} />
+            <Route path="/search" element={<FindFlats />} /> {/* alias for search */}
             <Route path="/post-flat" element={<PostFlat />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/about" element={<About />} />
             <Route path="/flat/:id" element={<FlatDetail />} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>

@@ -157,40 +157,58 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4 }}
                 >
-                  <Link to={`/flat/${flat.id}`} className="block group">
-                    <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden">
-                      <figure className="relative overflow-hidden h-64">
-                        <img
-                          src={flat.image_url || "https://placehold.co/800x500?text=No+Image+Available"}
-                          alt={flat.title || "Flat"}
-                          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
-                          onError={(e) => {
-                            e.target.src = "https://placehold.co/800x500?text=No+Image";
-                          }}
-                        />
-                      </figure>
-                      <div className="card-body p-5">
-                        <h2 className="card-title text-xl font-bold line-clamp-2">
-                          {flat.title || "Untitled Listing"}
-                        </h2>
-                        <div className="flex items-center gap-2 text-base-content/70">
-                          <MapPin size={16} />
-                          <span>{flat.location || "Unknown Location"}</span>
-                        </div>
-                        {flat.rooms && (
-                          <div className="badge badge-outline mt-1">{flat.rooms} room{flat.rooms > 1 ? "s" : ""}</div>
-                        )}
-                        <p className="text-xl font-semibold text-primary mt-3">
-                          {flat.price ? `₦${Number(flat.price).toLocaleString()}` : "Price on request"}
-                        </p>
-                        <div className="card-actions mt-4">
-                          <button className="btn btn-outline btn-primary btn-block">
-                            View Details
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
+
+<Link to={`/flat/${flat.id}`} className="block group">
+  <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden">
+    <figure className="relative overflow-hidden h-64">
+      <img  
+        src={`${import.meta.env.VITE_API_URL}${flat.image_url}` || "https://placehold.co/800x500?text=No+Image+Available"}
+        alt={flat.title || "Flat"}
+        className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+        onError={(e) => {
+          e.target.src = "https://placehold.co/800x500?text=No+Image";
+        }}
+      />
+    </figure>
+    <div className="card-body p-5">
+      <h2 className="card-title text-xl font-bold line-clamp-2">
+        {flat.title || "Untitled Listing"}
+      </h2>
+      <div className="flex items-center gap-2 text-base-content/70">
+        <MapPin size={16} />
+        <span>{flat.location || "Unknown Location"}</span>
+      </div>
+
+      {/* Rooms badge */}
+      {flat.rooms && (
+        <div className="badge badge-outline mt-1">{flat.rooms} room{flat.rooms > 1 ? "s" : ""}</div>
+      )}
+
+      {/* Gender preference badge */}
+      {flat.gender_preference && (
+        <div className={`badge mt-2 font-medium px-3 py-1 ${
+          flat.gender_preference === 'male_only'   ? 'bg-blue-100 text-blue-800 border-blue-300' :
+          flat.gender_preference === 'female_only' ? 'bg-pink-100 text-pink-800 border-pink-300' :
+          'bg-gray-100 text-gray-800 border-gray-300'
+        }`}>
+          {flat.gender_preference === 'male_only'   ? 'Male Only' :
+           flat.gender_preference === 'female_only' ? 'Female Only' :
+           'Any Gender'}
+        </div>
+      )}
+
+      <p className="text-xl font-semibold text-primary mt-3">
+        {flat.price ? `₦${Number(flat.price).toLocaleString()}` : "Price on request"}
+      </p>
+
+      <div className="card-actions mt-4">
+        <button className="btn btn-outline btn-primary btn-block">
+          View Details
+        </button>
+      </div>
+    </div>
+  </div>
+</Link>
                 </motion.div>
               ))}
             </div>

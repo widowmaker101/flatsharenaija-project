@@ -31,7 +31,7 @@ export default function Home() {
       if (budget) params.append("max_price", budget); // adjust param name to match backend
       if (rooms) params.append("min_rooms", rooms);
 
-      const res = await axios.get(`/api/listings?${params.toString()}`);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/listings/?limit=6`);
       setFlats(res.data.items || []);
       setCurrentPage(1);
 

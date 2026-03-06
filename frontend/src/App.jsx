@@ -8,7 +8,7 @@ import Home from './components/Home';
 import FindFlats from './pages/FindFlats';
 import PostFlat from './pages/PostFlat';
 import Login from './pages/Login';
-import SignUp from './pages/SignUp';
+import SignUp from './pages/Signup';
 import About from './pages/About';
 import FlatDetail from './pages/FlatDetail';
 import NotFound from './components/NotFound';

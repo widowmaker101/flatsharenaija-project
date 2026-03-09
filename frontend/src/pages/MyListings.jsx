@@ -22,7 +22,7 @@ export default function MyListings() {
 
     const fetchMyListings = async () => {
       try {
-        const res = await axios.get('/api/listings/my', {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/listings/my`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setListings(res.data.items || res.data || []);

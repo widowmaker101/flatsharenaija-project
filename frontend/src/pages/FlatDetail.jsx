@@ -71,7 +71,7 @@ export default function FlatDetail() {
               onClick={() => setShowImageModal(true)}
             >
               <img
-                src={`${import.meta.env.VITE_API_URL}${flat.image_url}` || 'https://placehold.co/1200x800?text=No+Image'}
+                src={`${import.meta.env.VITE_API_URL}/images/${flat.image_url}` || 'https://placehold.co/1200x800?text=No+Image'}
                 alt={flat.title}
                 className="w-full h-96 md:h-[600px] object-cover transition-transform group-hover:scale-105 duration-500"
                 onError={(e) => e.target.src = 'https://placehold.co/1200x800?text=No+Image'}

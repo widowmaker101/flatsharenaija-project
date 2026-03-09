@@ -106,7 +106,7 @@ export default function MyListings() {
             <div key={flat.id} className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden">
               <figure className="relative overflow-hidden h-64">
                 <img
-                  src={`${import.meta.env.VITE_API_URL}${flat.image_url}` || 'https://placehold.co/800x500?text=No+Image'}
+                  src={`${import.meta.env.VITE_API_URL}/images/${flat.image_url}` || 'https://placehold.co/800x500?text=No+Image'}
                   alt={flat.title}
                   className="w-full h-full object-cover transition-transform hover:scale-105 duration-500"
                   onError={(e) => e.target.src = 'https://placehold.co/800x500?text=No+Image'}

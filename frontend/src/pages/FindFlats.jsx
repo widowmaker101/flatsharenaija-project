@@ -212,7 +212,7 @@ const FindFlats = () => {
             >
               <figure>
                 <img
-                  src={`${import.meta.env.VITE_API_URL}${flat.image_url}` || 'https://placehold.co/600x400?text=No+Image'}
+                  src={`${import.meta.env.VITE_API_URL}/images/${flat.image_url}` || 'https://placehold.co/600x400?text=No+Image'}
                   alt={flat.title}
                   className="w-full h-56 object-cover"
                   onError={e => e.target.src = 'https://placehold.co/600x400?text=No+Image'}

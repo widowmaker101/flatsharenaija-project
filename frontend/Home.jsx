@@ -162,7 +162,7 @@ export default function Home() {
   <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden">
     <figure className="relative overflow-hidden h-64">
       <img  
-        src={`${import.meta.env.VITE_API_URL}${flat.image_url}` || "https://placehold.co/800x500?text=No+Image+Available"}
+        src={`${import.meta.env.VITE_API_URL}/images/${flat.image_url}` || "https://placehold.co/800x500?text=No+Image+Available"}
         alt={flat.title || "Flat"}
         className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
         onError={(e) => {

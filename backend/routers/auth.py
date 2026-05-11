@@ -3,13 +3,15 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from database import get_db
-from models import User
-from jose import jwt, JWTError
-from passlib.context import CryptContext
+from typing import Optional
 from datetime import datetime, timedelta
+import jwt
+import bcrypt
 import os
 from uuid import uuid4
+
+from database import get_db
+from models import User
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -17,28 +19,37 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
+REFRESH_SECRET_KEY = os.getenv("REFRESH_SECRET_KEY", SECRET_KEY)
 
 if not SECRET_KEY:
     raise RuntimeError("SECRET_KEY is not set in environment variables!")
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
+# ====================== Password Hashing (Modern bcrypt) ======================
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return hashed.decode('utf-8')
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+# ====================== Token Functions ======================
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=30))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
+def create_refresh_token(data: dict) -> str:
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(days=7)
+    to_encode.update({"exp": expire, "type": "refresh"})
+    return jwt.encode(to_encode, REFRESH_SECRET_KEY, algorithm=ALGORITHM)
+
 class RegisterRequest(BaseModel):
     name: str
     email: str
-    phone_number: str | None = None
+    phone_number: Optional[str] = None
     password: str
 
 @router.post("/register")
@@ -49,6 +60,7 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email already registered")
 
     hashed_password = get_password_hash(request.password)
+
     new_user = User(
         name=request.name,
         email=request.email,
@@ -69,13 +81,13 @@ async def login_for_access_token(
 
     user = db.query(User).filter(User.email == form_data.username).first()
     if not user:
-        print("User not found")
+        print("User not found for email:", form_data.username)
         raise HTTPException(
             status_code=401,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     if not verify_password(form_data.password, user.hashed_password):
         print("Password incorrect")
         raise HTTPException(
@@ -85,7 +97,41 @@ async def login_for_access_token(
         )
 
     access_token = create_access_token(data={"sub": user.email})
-    return {"access_token": access_token, "token_type": "bearer"}
+    refresh_token = create_refresh_token(data={"sub": user.email})
+
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer"
+    }
+
+@router.post("/refresh")
+async def refresh_access_token(
+    refresh_token: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    try:
+        payload = jwt.decode(refresh_token, REFRESH_SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("type") != "refresh":
+            raise HTTPException(status_code=401, detail="Invalid refresh token")
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=401, detail="Invalid refresh token")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    new_access_token = create_access_token(data={"sub": user.email})
+    new_refresh_token = create_refresh_token(data={"sub": user.email})  # Rotation
+
+    return {
+        "access_token": new_access_token,
+        "refresh_token": new_refresh_token,
+        "token_type": "bearer"
+    }
 
 @router.post("/avatar")
 async def upload_avatar(
@@ -93,24 +139,17 @@ async def upload_avatar(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
 ):
-    credentials_exception = HTTPException(
-        status_code=401,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         if email is None:
-            raise credentials_exception
-    except JWTError as e:
-        print(f"JWT decode error: {str(e)}")
-        raise credentials_exception
+            raise HTTPException(status_code=401, detail="Could not validate credentials")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Could not validate credentials")
 
     user = db.query(User).filter(User.email == email).first()
-    if user is None:
-        raise credentials_exception
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
 
     if not avatar.content_type.startswith('image/'):
         raise HTTPException(status_code=400, detail="File must be an image")
